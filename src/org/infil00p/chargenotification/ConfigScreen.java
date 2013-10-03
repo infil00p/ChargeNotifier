@@ -3,6 +3,8 @@ package org.infil00p.chargenotification;
 import android.os.Bundle;
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.text.Editable;
 import android.util.Log;
@@ -17,17 +19,30 @@ public class ConfigScreen extends Activity {
     public static final String LOG_TAG="ChargeConfigScreen";
     public static final String PREFS_NAME="ChargePreferences";
     Context mCtx;
+    //This should finally work!
+    ChargeNotifier batteryUpdateNotifier;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_config_screen);
         
+        batteryUpdateNotifier = new ChargeNotifier();
+        IntentFilter ifilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+        registerReceiver(batteryUpdateNotifier, ifilter);
+        
         mCtx = this;
+        
         //Initial setup
         SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
         String savedEmail = settings.getString("email","");
+        boolean privacyPolicy = settings.getBoolean("tosApproved", false);
         Log.d(LOG_TAG, "Default value is: " + savedEmail);
+        if(privacyPolicy == false)
+        {
+            
+        }
+        
         EditText emailField = (EditText) findViewById(R.id.emailText);
         emailField.setText(savedEmail);
         
