@@ -27,9 +27,11 @@ public class ConfigScreen extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_config_screen);
         
+        /* This code drains battery!
         batteryUpdateNotifier = new ChargeNotifier();
         IntentFilter ifilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
         registerReceiver(batteryUpdateNotifier, ifilter);
+        */
         
         mCtx = this;
         

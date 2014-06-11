@@ -1,15 +1,8 @@
 package org.infil00p.chargenotification;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
+
+import java.text.DateFormat;
+import java.util.Date;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -19,11 +12,10 @@ import com.squareup.okhttp.OkHttpClient;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.net.Uri;
 import android.os.BatteryManager;
 import android.provider.Settings;
-import android.provider.Settings.Secure;
 import android.util.Log;
 
 public class ChargeNotifier extends BroadcastReceiver {
@@ -93,6 +85,8 @@ public class ChargeNotifier extends BroadcastReceiver {
             messagePurpose = "WTF?";
         }
         
+        
+        
         int status = batteryStatus.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
         
         // How are we charging?
@@ -100,9 +94,10 @@ public class ChargeNotifier extends BroadcastReceiver {
         boolean usbCharge = chargePlug == BatteryManager.BATTERY_PLUGGED_USB;
         boolean acCharge = chargePlug == BatteryManager.BATTERY_PLUGGED_AC;
         
-        //Set the default to -1
-        int level = batteryStatus.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
-        int scale = batteryStatus.getIntExtra(BatteryManager.EXTRA_SCALE, 100);
+        //It's null, so that we don't drain the battery every time we do this!
+        Intent batteryIntent = mCtx.registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+        int level = batteryIntent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
+        int scale = batteryIntent.getIntExtra(BatteryManager.EXTRA_SCALE, 100);
 
         int batteryPct = (int) (((float)level / (float)scale) * 100);
         Log.d(TAG, "Level: " + Integer.toString(level) + ", Scale:" + Integer.toString(scale));
@@ -114,6 +109,11 @@ public class ChargeNotifier extends BroadcastReceiver {
         String deviceId = Settings.Secure.getString(mCtx.getContentResolver(), android.provider.Settings.Secure.ANDROID_ID);
         String value = manufacturer + " " + model + "(" + codeName + ")";
         
+        //Get the Date/Time of the Update, since Couch doesn't have this.
+        DateFormat df = DateFormat.getDateTimeInstance();
+        String date = df.format(new Date());
+        
+        
         JSONObject output = new JSONObject();
         output.put("device", value);
         output.put("battery_level", batteryPct);
@@ -121,6 +121,7 @@ public class ChargeNotifier extends BroadcastReceiver {
         output.put("deviceId", deviceId);
         output.put("email", savedEmail);
         output.put("message_type", messagePurpose);
+        output.put("datetime", date);
         
         return output;
     }
